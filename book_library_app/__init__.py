@@ -9,3 +9,6 @@ app.config.from_object(Config)
 @app.route('/')
 def index():
     return 'Hello from Flask!'
+
+
+from book_library_app import authors
