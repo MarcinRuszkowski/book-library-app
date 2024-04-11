@@ -1,11 +1,11 @@
 import re
-from flask import request, url_for
-from werkzeug.exceptions import UnsupportedMediaType
-from functools import wraps
+from flask import request, current_app, url_for
 from flask_sqlalchemy.query import Query
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.expression import BinaryExpression
-from typing import List, Dict, Tuple
+from werkzeug.exceptions import UnsupportedMediaType
+from functools import wraps
+from typing import Tuple, List, Dict
 
 from config import Config
 
@@ -39,6 +39,7 @@ def apply_order(model, query: Query) -> Query:
             if key.startswith('-'):
                 key = key[1:]
                 desc = True
+
             column_attr = getattr(model, key, None)
             if column_attr is not None:
                 query = query.order_by(column_attr.desc()) if desc else query.order_by(column_attr)
@@ -71,19 +72,19 @@ def apply_filter(model, query: Query) -> Query:
                     continue
                 filter_argument = _get_filter_argument(column_attr, value, operator)
                 query = query.filter(filter_argument)
-    
+
     return query
 
 
 def get_pagination(query: Query, func_name: str) -> Tuple[List, Dict]:
     page = request.args.get('page', 1, type=int)
-    limit = request.args.get('limit', Config.PER_PAGE, type=int)
+    limit = request.args.get('limit', current_app.config.get('PER_PAGE', 5), type=int)
     params = {key: value for key, value in request.args.items() if key != 'page'}
     paginate_obj = query.paginate(page=page, per_page=limit, error_out=False)
     pagination = {
         'total_pages': paginate_obj.pages,
-        'total_records': paginate_obj.total,
-        'current_page': url_for(func_name, page=page, **params)
+        'total_record': paginate_obj.total,
+        'current': url_for(func_name, page=page, **params)
     }
 
     if paginate_obj.has_next:

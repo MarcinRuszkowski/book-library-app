@@ -14,7 +14,7 @@ def get_authors():
     query = apply_order(Author, query)
     query = apply_filter(Author, query)
     items, pagination = get_pagination(query, 'authors.get_authors')
-    
+
     authors = AuthorSchema(**schema_args).dump(items)
 
     return jsonify({
@@ -54,8 +54,8 @@ def create_authors(args: dict):
 @validate_json_content_type
 @use_args(author_schema, error_status_code=400)
 def update_author(args: dict, author_id: int):
-    author = Author.query.get_or_404(author_id, description=f'Author with id: {author_id} not found')
-    
+    author = Author.query.get_or_404(author_id, description=f'Author with id {author_id} not found')
+
     author.first_name = args['first_name']
     author.last_name = args['last_name']
     author.birth_date = args['birth_date']
@@ -70,12 +70,11 @@ def update_author(args: dict, author_id: int):
 
 @authors_bp.route('/authors/<int:author_id>', methods=['DELETE'])
 def delete_author(author_id: int):
-    author = Author.query.get_or_404(author_id, description=f'Author with id {author_id} not found')
-
+    author = Author.query.get_or_404(author_id, description=f'Author with id: {author_id} not found')
+    
     db.session.delete(author)
     db.session.commit()
-    
     return jsonify({
         'success': True,
-        'data': f'Author with id {author_id} has been deleted'
+        'data': f'Author with id: {author_id} has been deleted'
     })
