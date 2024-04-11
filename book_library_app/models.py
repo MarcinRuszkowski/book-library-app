@@ -100,6 +100,20 @@ class Author(db.Model):
             pagination['previous_page'] = url_for('authors.get_authors', page=page - 1, **params)
 
         return paginate_obj.items, pagination
+    
+    
+class Book(db.Model):
+        __tablename__ = 'books'
+        id = db.Column(db.Integer, primary_key=True)
+        title = db.Column(db.String(50), nullable=False)
+        isbn = db.Column(db.BigInteger, nullable=False, unique=True)
+        number_of_pages = db.Column(db.Integer, nullable=False)
+        description = db.Column(db.Text)
+        author_id = db.Column(db.Integer, db.ForeignKey('authors.id'), nullable=False)
+        author = db.relationship('Author', back_populates='books')
+
+        def __repr__(self):
+            return f'{self.title} - {self.author.first_name} {self.author.last_name}'
 
 
 class AuthorSchema(Schema):
