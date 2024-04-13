@@ -44,6 +44,14 @@ class Book(db.Model):
     @staticmethod
     def additional_validation(param: str, value: str) -> str:
         return value
+    
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(255), nullable=False, unique=True, index=True)
+    email = db.Column(db.String(255), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    creation_data = db.Column(db.DateTime, default=datetime.now())
 
 
 class AuthorSchema(Schema):
