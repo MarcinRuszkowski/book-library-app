@@ -38,3 +38,8 @@ def unsupported_media_typ_error(err):
 def internal_server_error(err):
     db.session.rollback()
     return ErrorResponse(err.description, 500).to_response()
+
+
+@errors_bp.app_errorhandler(409)
+def conflict_error(err):
+    return ErrorResponse(err.description, 404).to_response()

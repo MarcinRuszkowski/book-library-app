@@ -2,7 +2,7 @@ from flask import abort, jsonify
 from webargs.flaskparser import use_args
 
 from book_library_app import db
-from book_library_app.models import Book, BookSchema, book_schema
+from book_library_app.models import Author, Book, BookSchema, book_schema
 from book_library_app.utils import validate_json_content_type, get_schema_args, apply_order, apply_filter, get_pagination
 from book_library_app.books import books_bp
 
@@ -33,3 +33,74 @@ def get_book(book_id: int):
         'success': True,
         'data': book_schema.dump(book)
     })
+
+
+@books_bp.route('/books/<int:book_id>', methods=['PUT'])
+@validate_json_content_type
+@use_args(book_schema, error_status_code=400)
+def update_books(args: dict, book_id: int):
+    book = Book.query.get_or_404(book_id, description=f'Book with id {book_id} not found')
+    existing_book = Book.query.filter(Book.isbn == args['isbn']).first()
+    if existing_book and existing_book.id != book_id:
+        abort(409, description=f'Book with isbn {args["isbn"]} has arelady exist')
+
+    book.title = args['title']
+    book.isbn = args['isbn']
+    book.number_of_pages = args['number_of_pages']
+    description = args.get('description')
+    if description is not None:
+        book.description = description
+    author_id = args.get('author_id')
+    if author_id is not None:
+        Author.query.get_or_404(author_id, description=f'Author with id {author_id} not found')
+        book.author_id = author_id
+
+    db.session.commit()
+    return jsonify({
+        'success': True,
+        'data': book_schema.dump(book)
+    })
+
+
+@books_bp.route('/books/<int:book_id>', methods=['DELETE'])
+def delete_book(book_id: int):
+    book = Book.query.get_or_404(book_id, description=f'Author with id: {book_id} not found')
+    
+    db.session.delete(book)
+    db.session.commit()
+    return jsonify({
+        'success': True,
+        'data': f'Book with id {book_id} has been deleted'
+    })
+
+
+@books_bp.route('/authors/<int:author_id>/books', methods=['GET'])
+def get_all_author_books(author_id: int):
+    Author.query.get_or_404(author_id, description=f'Author with id {author_id} not found')
+    books = Book.query.filter(Book.author_id == author_id).all()
+
+    items = BookSchema(many=True, exclude=['author']).dump(books)
+
+    return jsonify({
+        'success': True,
+        'data': items,
+        'number_of_records': len(items)
+    })
+
+
+@books_bp.route('/authors<int:author_id>/books', methods=['POST'])
+@validate_json_content_type
+@use_args(BookSchema(exclude=['author_id']), error_status_code=400)
+def create_book(args: dict, author_id):
+    Author.query.get_or_404(author_id, description=f'Author with id {author_id} not found')
+    if Book.query.filter(Book.isbn == args['isbn']).first():
+        abort(409, descripton=f'Book with isbn {args['isbn']} has arleady exist')
+
+    book = Book(author_id=author_id, **args)
+
+    db.session.add(book)
+    db.session.commit()
+    return jsonify({
+        'success': True,
+        'data': book_schema.dump(book)
+    }), 201
