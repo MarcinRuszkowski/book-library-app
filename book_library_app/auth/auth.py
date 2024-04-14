@@ -3,7 +3,7 @@ from flask import abort, jsonify
 
 from book_library_app import db
 from book_library_app.auth import auth_bp
-from book_library_app.models import user_schema, User, UserSchema
+from book_library_app.models import user_schema, User, UserSchema, user_password_update_schema
 from book_library_app.utils import validate_json_content_type, token_required
 
 
@@ -50,10 +50,51 @@ def login(args: dict):
 
 @auth_bp.route('/me', methods=['GET'])
 @token_required
-def get_current_user(user_id: str):
+def get_current_user(user_id: int):
     user = User.query.get_or_404(user_id, description=f'User with id {user_id} not found')
 
     return jsonify({
         'success': True,
         'data': user_schema(user)
+    })
+
+
+@auth_bp.route('/update/password', methods=['PUT'])
+@token_required
+@validate_json_content_type
+@use_args(user_password_update_schema, error_status_code=400)
+def update_user_password(user_id: int, args: dict):
+    user = User.query.get_or_404(user_id, description=f'User with id {user_id} not found')
+
+    if not user.is_password_valid(args['current_password']):
+        abort(401, description='Invalid password')
+
+    user.password = user.generate_hashed_password(args['new_password'])
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'data': user_schema.dump(user)
+    })
+
+
+@auth_bp.route('/update/data', methods=['POST'])
+@token_required
+@validate_json_content_type
+@use_args(UserSchema(only=['username', 'email']), error_status_code=400)
+def update_user_data(user_id: int, args: dict):
+    if User.query.filter(User.username == args['username']).first():
+        abort(409, description=f'User with username {args["username"]} has arleady exist')
+    if User.query.filter(User.email == args['email']).first():
+        abort(409, description=f'User with email {args["email"]} has arleady exist')
+
+    user = User.query.get_or_404(user_id, description=f'User with id {user_id} not found')
+
+    user.username = args['username']
+    user.email = args['email']
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'data': user_schema.dump(user)
     })
