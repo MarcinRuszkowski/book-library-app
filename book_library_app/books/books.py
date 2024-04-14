@@ -3,7 +3,7 @@ from webargs.flaskparser import use_args
 
 from book_library_app import db
 from book_library_app.models import Author, Book, BookSchema, book_schema
-from book_library_app.utils import validate_json_content_type, get_schema_args, apply_order, apply_filter, get_pagination
+from book_library_app.utils import validate_json_content_type, get_schema_args, apply_order, apply_filter, get_pagination, token_required
 from book_library_app.books import books_bp
 
 
@@ -36,6 +36,7 @@ def get_book(book_id: int):
 
 
 @books_bp.route('/books/<int:book_id>', methods=['PUT'])
+@token_required
 @validate_json_content_type
 @use_args(book_schema, error_status_code=400)
 def update_books(args: dict, book_id: int):
@@ -63,6 +64,7 @@ def update_books(args: dict, book_id: int):
 
 
 @books_bp.route('/books/<int:book_id>', methods=['DELETE'])
+@token_required
 def delete_book(book_id: int):
     book = Book.query.get_or_404(book_id, description=f'Author with id: {book_id} not found')
     
@@ -89,6 +91,7 @@ def get_all_author_books(author_id: int):
 
 
 @books_bp.route('/authors/<int:author_id>/books', methods=['POST'])
+@token_required
 @validate_json_content_type
 @use_args(BookSchema(exclude=['author_id']), error_status_code=400)
 def create_book(args: dict, author_id):

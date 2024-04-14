@@ -1,5 +1,6 @@
 import re
-from flask import request, current_app, url_for
+import jwt
+from flask import request, current_app, url_for, abort
 from flask_sqlalchemy.query import Query
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.expression import BinaryExpression
@@ -94,3 +95,26 @@ def get_pagination(query: Query, func_name: str) -> Tuple[List, Dict]:
         pagination['previous_page'] = url_for(func_name, page=page - 1, **params)
 
     return paginate_obj.items, pagination
+
+
+def token_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        token = None
+        auth = request.headers.get('Authorization')
+        if auth:
+            token = auth.split(' ')[1]
+        if token is None:
+            abort(401, description='Missing token.Please login or register')
+
+        try:
+            payload = jwt.decode(token, current_app.config.get('SECRET_KEY'), algorithms=['HS256'])
+        
+        except jwt.ExpiredSignatureError:
+            abort(401, description='Expired token. Please login to get new token')
+        except jwt.InvalidTokenError:
+            abort(401, description='Invalid token. Please login or register')
+        else:
+            return func(payload['user_id'], *args, **kwargs)
+
+    return wrapper

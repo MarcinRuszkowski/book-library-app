@@ -2,7 +2,7 @@ import jwt
 from flask import current_app
 from marshmallow import Schema, fields, validate, validates, ValidationError
 from datetime import datetime, date, timedelta
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from book_library_app import db
 
@@ -66,6 +66,10 @@ class User(db.Model):
             'user_id': self.id,
             'exp': datetime.now() + timedelta(minutes=current_app.config.get('JWT_EXPIRED_MINUTES', 30))
         }
+
+    def is_password_valid(self, password: str) -> bool:
+        return check_password_hash(self.password, password)
+    
 
 
 class AuthorSchema(Schema):
