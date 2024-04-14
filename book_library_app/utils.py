@@ -8,8 +8,6 @@ from werkzeug.exceptions import UnsupportedMediaType
 from functools import wraps
 from typing import Tuple, List, Dict
 
-from config import Config
-
 
 COMPARISON_OPERATORS_RE = re.compile(r'(.*)\[(gte|gt|lte|lt)\]')
 
