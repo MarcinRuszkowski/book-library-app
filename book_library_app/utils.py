@@ -103,16 +103,15 @@ def token_required(func):
         if auth:
             token = auth.split(' ')[1]
         if token is None:
-            abort(401, description='Missing token.Please login or register')
+            abort(401, description='Missing token. Please login or register')
 
         try:
             payload = jwt.decode(token, current_app.config.get('SECRET_KEY'), algorithms=['HS256'])
-        
         except jwt.ExpiredSignatureError:
             abort(401, description='Expired token. Please login to get new token')
         except jwt.InvalidTokenError:
             abort(401, description='Invalid token. Please login or register')
         else:
             return func(payload['user_id'], *args, **kwargs)
-
+    
     return wrapper

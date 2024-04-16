@@ -7,7 +7,7 @@ from book_library_app.errors import errors_bp
 class ErrorResponse:
     def __init__(self, message: str, http_status: int):
         self.payload = {
-            'successs': False,
+            'success': False,
             'message': message
         }
         self.http_status = http_status
@@ -36,7 +36,7 @@ def not_found_error(err):
 
 @errors_bp.app_errorhandler(409)
 def conflict_error(err):
-    return ErrorResponse(err.description, 404).to_response()
+    return ErrorResponse(err.description, 409).to_response()
 
 
 @errors_bp.app_errorhandler(415)

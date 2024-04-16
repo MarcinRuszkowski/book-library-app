@@ -55,7 +55,7 @@ class User(db.Model):
     username = db.Column(db.String(255), nullable=False, unique=True, index=True)
     email = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    creation_data = db.Column(db.DateTime, default=datetime.now())
+    creation_date = db.Column(db.DateTime, default=datetime.now())
 
     @staticmethod
     def generate_hashed_password(password: str) -> str:
@@ -66,6 +66,7 @@ class User(db.Model):
             'user_id': self.id,
             'exp': datetime.now() + timedelta(minutes=current_app.config.get('JWT_EXPIRED_MINUTES', 30))
         }
+        return jwt.encode(payload, current_app.config.get('SECRET_KEY'))
 
     def is_password_valid(self, password: str) -> bool:
         return check_password_hash(self.password, password)
@@ -102,7 +103,7 @@ class BookSchema(Schema):
 
 class UserSchema(Schema):
     id = fields.Integer(dump_only=True)
-    username = fields.Integer(required=True, validate=validate.Length(max=355))
+    username = fields.String(required=True, validate=validate.Length(max=355))
     email = fields.Email(required=True)
     password = fields.String(required=True, load_only=True, validate=validate.Length(max=255))
     creation = fields.DateTime(dump_only=True)

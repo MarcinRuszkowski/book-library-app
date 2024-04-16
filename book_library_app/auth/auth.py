@@ -12,21 +12,21 @@ from book_library_app.utils import validate_json_content_type, token_required
 @use_args(user_schema, error_status_code=400)
 def register_user(args: dict):
     if User.query.filter(User.username == args['username']).first():
-        abort(409, description=f'User with username {args['username']} arleady exist')
+        abort(409, description=f'User with username {args["username"]} already exist')
     if User.query.filter(User.email == args['email']).first():
-        abort(409, description=f'User with email {args['email']} arleady exist')
+        abort(409, description=f'User with email {args["email"]} already exist')
 
     args['password'] = User.generate_hashed_password(args['password'])
     user = User(**args)
 
     db.session.add(user)
     db.session.commit()
-    
+
     token = user.generate_jwt()
 
     return jsonify({
         'success': True,
-        'data': token
+        'token': token
     }), 201
 
 
@@ -55,7 +55,7 @@ def get_current_user(user_id: int):
 
     return jsonify({
         'success': True,
-        'data': user_schema(user)
+        'data': user_schema.dump(user)
     })
 
 
@@ -78,22 +78,22 @@ def update_user_password(user_id: int, args: dict):
     })
 
 
-@auth_bp.route('/update/data', methods=['POST'])
+@auth_bp.route('/update/data', methods=['PUT'])
 @token_required
 @validate_json_content_type
 @use_args(UserSchema(only=['username', 'email']), error_status_code=400)
 def update_user_data(user_id: int, args: dict):
     if User.query.filter(User.username == args['username']).first():
-        abort(409, description=f'User with username {args["username"]} has arleady exist')
+        abort(409, description=f'User with username {args["username"]} already exist')
     if User.query.filter(User.email == args['email']).first():
-        abort(409, description=f'User with email {args["email"]} has arleady exist')
+        abort(409, description=f'User with email {args["email"]} already exist')
 
     user = User.query.get_or_404(user_id, description=f'User with id {user_id} not found')
 
     user.username = args['username']
     user.email = args['email']
     db.session.commit()
-
+    
     return jsonify({
         'success': True,
         'data': user_schema.dump(user)
