@@ -82,8 +82,8 @@ def get_pagination(query: Query, func_name: str) -> Tuple[List, Dict]:
     paginate_obj = query.paginate(page=page, per_page=limit, error_out=False)
     pagination = {
         'total_pages': paginate_obj.pages,
-        'total_record': paginate_obj.total,
-        'current': url_for(func_name, page=page, **params)
+        'total_records': paginate_obj.total,
+        'current_page': url_for(func_name, page=page, **params)
     }
 
     if paginate_obj.has_next:

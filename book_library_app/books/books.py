@@ -39,7 +39,7 @@ def get_book(book_id: int):
 @token_required
 @validate_json_content_type
 @use_args(book_schema, error_status_code=400)
-def update_books(args: dict, book_id: int):
+def update_books(user_id: int, args: dict, book_id: int):
     book = Book.query.get_or_404(book_id, description=f'Book with id {book_id} not found')
     existing_book = Book.query.filter(Book.isbn == args['isbn']).first()
     if existing_book and existing_book.id != book_id:
@@ -65,7 +65,7 @@ def update_books(args: dict, book_id: int):
 
 @books_bp.route('/books/<int:book_id>', methods=['DELETE'])
 @token_required
-def delete_book(book_id: int):
+def delete_book(user_id: int, book_id: int):
     book = Book.query.get_or_404(book_id, description=f'Author with id: {book_id} not found')
     
     db.session.delete(book)
@@ -94,7 +94,7 @@ def get_all_author_books(author_id: int):
 @token_required
 @validate_json_content_type
 @use_args(BookSchema(exclude=['author_id']), error_status_code=400)
-def create_book(args: dict, author_id):
+def create_book(user_id: int, args: dict, author_id):
     Author.query.get_or_404(author_id, description=f'Author with id {author_id} not found')
     if Book.query.filter(Book.isbn == args['isbn']).first():
         abort(409, descripton=f'Book with isbn {args['isbn']} has arleady exist')

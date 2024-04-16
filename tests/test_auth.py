@@ -5,7 +5,7 @@ from book_library_app import db
 
 def test_registration(client, clean_up_db):
     response = client.post('/api/v1/auth/register',
-                           json={  # content-type zostanie autom. na application/json
+                           json={
                                'username': 'test',
                                'password': '123456',
                                'email': 'test@gmail.com'
@@ -39,7 +39,7 @@ def test_registration_invalid_data(client, data, missing_field, clean_up_db):
 
 def test_registration_invalid_content_type(client, clean_up_db):
     response = client.post('/api/v1/auth/register',
-                           data={  # nie ma application/json
+                           data={
                                'username': 'test',
                                'password': '123456',
                                'email': 'test@gmail.com'

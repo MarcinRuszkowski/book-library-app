@@ -39,7 +39,7 @@ def get_author(author_id: int):
 @token_required
 @validate_json_content_type
 @use_args(author_schema, error_status_code=400)
-def create_authors(args: dict):
+def create_authors(user_id: int, args: dict):
     author = Author(**args)
 
     db.session.add(author)
@@ -55,7 +55,7 @@ def create_authors(args: dict):
 @token_required
 @validate_json_content_type
 @use_args(author_schema, error_status_code=400)
-def update_author(args: dict, author_id: int):
+def update_author(user_id: int, args: dict, author_id: int):
     author = Author.query.get_or_404(author_id, description=f'Author with id {author_id} not found')
 
     author.first_name = args['first_name']
@@ -72,7 +72,7 @@ def update_author(args: dict, author_id: int):
 
 @authors_bp.route('/authors/<int:author_id>', methods=['DELETE'])
 @token_required
-def delete_author(author_id: int):
+def delete_author(user_id: int, author_id: int):
     author = Author.query.get_or_404(author_id, description=f'Author with id: {author_id} not found')
     
     db.session.delete(author)

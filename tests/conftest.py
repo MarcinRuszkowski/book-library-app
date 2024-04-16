@@ -46,3 +46,18 @@ def token(client, user):
 def clean_up_db():
     yield
     db.engine.dispose()
+
+
+@pytest.fixture
+def sample_data(app):
+    runner = app.test_cli_runner()
+    runner.invoke(add_data)
+
+
+@pytest.fixture
+def author():
+    return {
+        'first_name': 'Adam',
+        'last_name': 'Mickiewicz',
+        'birth_date': '24-12-1798'
+    }
